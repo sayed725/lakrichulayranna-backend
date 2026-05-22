@@ -1,0 +1,14 @@
+model Setting {
+  id           Int      @id @default(1)
+  siteName     String
+  tagline      String?
+  logoUrl      String?
+  phone        String
+  email        String
+  address      String
+  openTime     String
+  closeTime    String
+  facebookUrl  String?
+  instagramUrl String?
+  updatedAt    DateTime @updatedAt
+}

@@ -1,0 +1,36 @@
+{
+    "compilerOptions": {
+        // File Layout
+        "rootDir": "./",
+        "outDir": "./dist",
+        // Environment Settings
+        "module": "ESNext",
+        // "moduleResolution": "node",
+        "moduleResolution": "bundler",
+        "target": "ES2023",
+        "types": ["node"],
+        // For nodejs:
+        // "lib": ["esnext"],
+        // "types": ["node"],
+        // and npm install -D @types/node
+        // Stricter Typechecking Options
+        "noUncheckedIndexedAccess": true,
+        "exactOptionalPropertyTypes": true,
+        // Recommended Options
+        "strict": true,
+        "esModuleInterop": true,
+        "isolatedModules": true,
+        "noUncheckedSideEffectImports": true,
+        "moduleDetection": "force",
+        "skipLibCheck": true
+    },
+    "include": [
+        "src/**/*",
+        "prisma/**/*"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist",
+        "src/generated"
+    ]
+}
