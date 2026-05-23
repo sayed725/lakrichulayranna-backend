@@ -8,13 +8,13 @@ model Item {
   imageUrl      String
   images        String[]
   categoryId    String
-  category      Category    @relation(fields: [categoryId], references: [id])
   isAvailable   Boolean     @default(true)
   isFeatured    Boolean     @default(false)
   tags          String[]
+  createdAt     DateTime    @default(now())
+  category      Category    @relation(fields: [categoryId], references: [id])
   orderItems    OrderItem[]
   reviews       Review[]
-  createdAt     DateTime    @default(now())
 
   @@index([categoryId])
 }

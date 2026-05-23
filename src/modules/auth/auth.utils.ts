@@ -3,12 +3,12 @@ import { Secret } from 'jsonwebtoken';
 
 export const createToken = (
   jwtPayload: { userId: string; role: string; email: string },
-  secret: Secret,
+  secret: string,
   expiresIn: string
 ) => {
   return generateToken(jwtPayload, secret, expiresIn);
 };
 
-export const verifyAuthToken = (token: string, secret: Secret) => {
+export const verifyAuthToken = (token: string, secret: string) => {
   return verifyToken(token, secret);
 };

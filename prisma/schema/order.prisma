@@ -2,8 +2,6 @@ model Order {
   id              String        @id @default(uuid())
   orderNumber     String        @unique
   userId          String
-  user            User          @relation(fields: [userId], references: [id])
-  items           OrderItem[]
   subtotal        Float
   discountAmount  Float         @default(0)
   total           Float
@@ -17,21 +15,9 @@ model Order {
   notes           String?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
+  coupon          Coupon?       @relation(fields: [couponId], references: [id])
+  user            User          @relation(fields: [userId], references: [id])
+  items           OrderItem[]
 
   @@index([userId])
-}
-
-model OrderItem {
-  id        String @id @default(uuid())
-  orderId   String
-  order     Order  @relation(fields: [orderId], references: [id])
-  itemId    String
-  item      Item   @relation(fields: [itemId], references: [id])
-  itemName  String
-  itemPrice Float
-  quantity  Int
-  total     Float
-
-  @@index([orderId])
-  @@index([itemId])
 }

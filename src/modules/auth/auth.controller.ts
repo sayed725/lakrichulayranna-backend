@@ -5,18 +5,28 @@ import { AuthService } from './auth.service';
 
 const registerUser = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthService.registerUser(req.body);
+  const { refreshToken, accessToken, user } = result;
+
+  res.cookie('refreshToken', refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  });
 
   sendResponse(res, {
     statusCode: 201,
     success: true,
     message: 'User registered successfully',
-    data: result,
+    data: {
+      user,
+      accessToken,
+    },
   });
 });
 
 const loginUser = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthService.loginUser(req.body);
-  const { refreshToken, accessToken } = result;
+  const { refreshToken, accessToken, user } = result;
 
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
@@ -29,6 +39,7 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
     success: true,
     message: 'User logged in successfully',
     data: {
+      user,
       accessToken,
     },
   });

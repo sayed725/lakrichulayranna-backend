@@ -8,10 +8,13 @@ import admin from '../../middlewares/admin';
 const router = express.Router();
 
 router.get('/item/:itemId', ReviewController.getItemReviews);
+router.get('/my-reviews', auth, ReviewController.getMyReviews);
 router.post('/', auth, validateRequest(ReviewValidation.createReviewSchema), ReviewController.createReview);
 
-router.get('/', auth, admin, ReviewController.getAllReviews);
+router.get('/', ReviewController.getAllReviews);
 router.patch('/:id/approve', auth, admin, ReviewController.approveReview);
+router.patch('/:id', auth, validateRequest(ReviewValidation.updateReviewSchema), ReviewController.updateMyReview);
+router.delete('/my-reviews/:id', auth, ReviewController.deleteMyReview);
 router.delete('/:id', auth, admin, ReviewController.deleteReview);
 
 export const ReviewRoutes = router;

@@ -1,13 +1,13 @@
 model Review {
   id         String   @id @default(uuid())
   userId     String
-  user       User     @relation(fields: [userId], references: [id])
   itemId     String
-  item       Item     @relation(fields: [itemId], references: [id])
   rating     Int
   comment    String?
   isApproved Boolean  @default(false)
   createdAt  DateTime @default(now())
+  item       Item     @relation(fields: [itemId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([itemId])

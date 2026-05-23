@@ -79,10 +79,59 @@ const deleteReview = async (id: string) => {
   return await prisma.review.delete({ where: { id } });
 };
 
+const getMyReviews = async (userId: string, queries: IQueryParams) => {
+  const queryBuilder = new QueryBuilder(prisma.review, queries, {
+    searchableFields: reviewSearchableFields,
+    filterableFields: reviewFilterableFields,
+  })
+    .where({ userId })
+    .sort()
+    .paginate()
+    .include(reviewIncludeConfig);
+
+  const result = await queryBuilder.execute();
+  return result;
+};
+
+const updateMyReview = async (userId: string, reviewId: string, payload: { rating?: number, comment?: string }) => {
+  const review = await prisma.review.findFirst({
+    where: { id: reviewId, userId },
+  });
+
+  if (!review) {
+    throw new AppError(404, 'Review not found or you do not have permission to update it');
+  }
+
+  return await prisma.review.update({
+    where: { id: reviewId },
+    data: {
+      ...payload,
+      isApproved: false, // Re-require approval on update
+    },
+  });
+};
+
+const deleteMyReview = async (userId: string, reviewId: string) => {
+  const review = await prisma.review.findFirst({
+    where: { id: reviewId, userId },
+  });
+
+  if (!review) {
+    throw new AppError(404, 'Review not found or you do not have permission to delete it');
+  }
+
+  return await prisma.review.delete({
+    where: { id: reviewId },
+  });
+};
+
 export const ReviewService = {
   createReview,
   getItemReviews,
   getAllReviews,
   approveReview,
   deleteReview,
+  getMyReviews,
+  updateMyReview,
+  deleteMyReview,
 };

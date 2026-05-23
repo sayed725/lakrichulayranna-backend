@@ -2,12 +2,15 @@ import { DiscountType } from '@prisma/client';
 
 export type TCreateCoupon = {
   code: string;
+  title: string;
   discountType: DiscountType;
   discountValue: number;
   minOrderAmount?: number;
-  maxUses?: number;
+  maxDiscountAmount?: number;
+  expiryDate: string;
+  usageLimit?: number;
   isActive?: boolean;
-  expiresAt?: string;
+  description?: string;
 };
 
 export type TUpdateCoupon = Partial<TCreateCoupon>;

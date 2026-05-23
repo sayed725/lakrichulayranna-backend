@@ -38,13 +38,20 @@ const createOrder = async (userId: string, payload: TCreateOrder) => {
 
   if (couponCode) {
     const coupon = await prisma.coupon.findUnique({ where: { code: couponCode } });
-    if (coupon && coupon.isActive) {
-      if (!coupon.expiresAt || new Date(coupon.expiresAt) > new Date()) {
+    if (coupon && coupon.isActive && !coupon.isDeleted) {
+      if (new Date(coupon.expiryDate) > new Date()) {
         if (!coupon.minOrderAmount || subtotal >= coupon.minOrderAmount) {
           couponId = coupon.id;
-          discountAmount = coupon.discountType === 'FIXED' 
-            ? Math.min(subtotal, coupon.discountValue) 
+          let discount = coupon.discountType === 'FIXED' 
+            ? coupon.discountValue 
             : (subtotal * coupon.discountValue) / 100;
+          
+          // Apply max discount limit if set
+          if (coupon.maxDiscountAmount) {
+            discount = Math.min(discount, coupon.maxDiscountAmount);
+          }
+          
+          discountAmount = Math.min(subtotal, discount);
           
           await prisma.coupon.update({
             where: { id: coupon.id },
@@ -100,7 +107,7 @@ const getMyOrders = async (userId: string, queries: IQueryParams) => {
     .filter()
     .sort()
     .paginate()
-    .include({ items: true });
+    .include({ items: { include: { item: true } } });
 
   const result = await queryBuilder.execute();
   return result;
@@ -109,7 +116,7 @@ const getMyOrders = async (userId: string, queries: IQueryParams) => {
 const getOrderById = async (id: string, userId: string, role: string) => {
   const order = await prisma.order.findUnique({
     where: { id },
-    include: { items: true, user: { select: { id: true, name: true, email: true } } },
+    include: { items: { include: { item: true } }, user: { select: { id: true, name: true, email: true, phone: true } } },
   });
 
   if (!order) throw new AppError(404, 'Order not found');

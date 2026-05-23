@@ -9,7 +9,12 @@ const createCoupon = async (payload: TCreateCoupon) => {
   const isExist = await prisma.coupon.findUnique({ where: { code: payload.code } });
   if (isExist) throw new AppError(409, 'Coupon code already exists');
 
-  return await prisma.coupon.create({ data: payload });
+  return await prisma.coupon.create({ 
+    data: {
+      ...payload,
+      discountType: payload.discountType || 'FIXED',
+    }
+  });
 };
 
 const getAllCoupons = async (queries: IQueryParams) => {
@@ -32,8 +37,9 @@ const validateCoupon = async (code: string, subtotal: number) => {
 
   if (!coupon) throw new AppError(404, 'Invalid coupon code');
   if (!coupon.isActive) throw new AppError(400, 'Coupon is inactive');
-  if (coupon.expiresAt && new Date(coupon.expiresAt) < new Date()) throw new AppError(400, 'Coupon is expired');
-  if (coupon.maxUses && coupon.usedCount >= coupon.maxUses) throw new AppError(400, 'Coupon usage limit reached');
+  if (coupon.isDeleted) throw new AppError(400, 'Coupon is deleted');
+  if (new Date(coupon.expiryDate) < new Date()) throw new AppError(400, 'Coupon is expired');
+  if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) throw new AppError(400, 'Coupon usage limit reached');
   if (coupon.minOrderAmount && subtotal < coupon.minOrderAmount) {
     throw new AppError(400, `Minimum order amount of ${coupon.minOrderAmount} required for this coupon`);
   }

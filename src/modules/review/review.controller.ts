@@ -29,10 +29,28 @@ const deleteReview = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, { statusCode: 200, success: true, message: 'Review deleted', data: null });
 });
 
+const getMyReviews = catchAsync(async (req: Request, res: Response) => {
+  const result = await ReviewService.getMyReviews(req.user.userId, req.query as unknown as IQueryParams);
+  sendResponse(res, { statusCode: 200, success: true, message: 'My reviews retrieved', meta: result.meta, data: result.data });
+});
+
+const updateMyReview = catchAsync(async (req: Request, res: Response) => {
+  const result = await ReviewService.updateMyReview(req.user.userId, req.params.id as string, req.body);
+  sendResponse(res, { statusCode: 200, success: true, message: 'Review updated successfully', data: result });
+});
+
+const deleteMyReview = catchAsync(async (req: Request, res: Response) => {
+  await ReviewService.deleteMyReview(req.user.userId, req.params.id as string);
+  sendResponse(res, { statusCode: 200, success: true, message: 'Review deleted successfully', data: null });
+});
+
 export const ReviewController = {
   createReview,
   getItemReviews,
   getAllReviews,
   approveReview,
   deleteReview,
+  getMyReviews,
+  updateMyReview,
+  deleteMyReview,
 };

@@ -24,7 +24,29 @@ const registerUser = async (payload: any) => {
 
   const { password, ...userWithoutPassword } = newUser;
 
-  return userWithoutPassword;
+  const jwtPayload = {
+    userId: newUser.id,
+    role: newUser.role,
+    email: newUser.email,
+  };
+
+  const accessToken = createToken(
+    jwtPayload,
+    env.JWT_SECRET,
+    env.JWT_EXPIRES_IN
+  );
+
+  const refreshToken = createToken(
+    jwtPayload,
+    env.JWT_SECRET,
+    '7d'
+  );
+
+  return {
+    user: userWithoutPassword,
+    accessToken,
+    refreshToken,
+  };
 };
 
 const loginUser = async (payload: any) => {
@@ -60,7 +82,10 @@ const loginUser = async (payload: any) => {
     '7d'
   );
 
+  const { password: _, ...userWithoutPassword } = user;
+
   return {
+    user: userWithoutPassword,
     accessToken,
     refreshToken,
   };

@@ -8,6 +8,14 @@ const createReviewSchema = z.object({
   }),
 });
 
+const updateReviewSchema = z.object({
+  body: z.object({
+    rating: z.number().int().min(1).max(5).optional(),
+    comment: z.string().optional(),
+  }),
+});
+
 export const ReviewValidation = {
   createReviewSchema,
+  updateReviewSchema,
 };

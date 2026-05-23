@@ -1,7 +1,7 @@
 import { Prisma } from '../../generated';
 
-export const couponSearchableFields = ['code'];
+export const couponSearchableFields = ['code', 'title'];
 
-export const couponFilterableFields = ['isActive', 'discountType'];
+export const couponFilterableFields = ['isActive', 'discountType', 'isDeleted'];
 
 export const couponIncludeConfig = {};
