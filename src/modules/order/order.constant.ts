@@ -1,4 +1,5 @@
-import { Prisma } from '../../generated';
+import { Prisma } from "@prisma/client";
+
 
 export const orderSearchableFields = ['orderNumber', 'couponCode', 'user.name', 'user.email'];
 

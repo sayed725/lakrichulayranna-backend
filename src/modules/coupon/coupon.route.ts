@@ -15,7 +15,7 @@ router.post(
   CouponController.validateCoupon
 );
 
-router.get('/', auth, admin, CouponController.getAllCoupons);
+router.get('/',CouponController.getAllCoupons);
 router.post('/', auth, admin, validateRequest(CouponValidation.createCouponSchema), CouponController.createCoupon);
 router.patch('/:id', auth, admin, validateRequest(CouponValidation.updateCouponSchema), CouponController.updateCoupon);
 router.delete('/:id', auth, admin, CouponController.deleteCoupon);
