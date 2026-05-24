@@ -1,4 +1,4 @@
-import { PaymentMethod } from '@prisma/client';
+import { PaymentMethod } from "../../generated/client";
 
 export type TOrderItem = {
   itemId: string;

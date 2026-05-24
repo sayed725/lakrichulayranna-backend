@@ -3,3 +3,14 @@ export type TCreateReview = {
   rating: number;
   comment?: string;
 };
+
+export type TUpdateReview = {
+  rating?: number;
+  comment?: string;
+};
+
+export type TAdminUpdateReview = {
+  isApproved?: boolean;
+  isFeatured?: boolean;
+  isDeleted?: boolean;
+};

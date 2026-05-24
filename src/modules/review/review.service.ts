@@ -42,7 +42,7 @@ const getItemReviews = async (itemId: string, queries: IQueryParams) => {
     searchableFields: reviewSearchableFields,
     filterableFields: reviewFilterableFields,
   })
-    .where({ itemId, isApproved: true })
+    .where({ itemId, isApproved: true, isDeleted: false })
     .search()
     .filter()
     .sort()
@@ -58,6 +58,7 @@ const getAllReviews = async (queries: IQueryParams) => {
     searchableFields: reviewSearchableFields,
     filterableFields: reviewFilterableFields,
   })
+    .where({ isDeleted: false })
     .search()
     .filter()
     .sort()
@@ -75,8 +76,25 @@ const approveReview = async (id: string) => {
   });
 };
 
+const featureReview = async (id: string) => {
+  return await prisma.review.update({
+    where: { id },
+    data: { isFeatured: true },
+  });
+};
+
+const unfeatureReview = async (id: string) => {
+  return await prisma.review.update({
+    where: { id },
+    data: { isFeatured: false },
+  });
+};
+
 const deleteReview = async (id: string) => {
-  return await prisma.review.delete({ where: { id } });
+  return await prisma.review.update({
+    where: { id },
+    data: { isDeleted: true, deletedAt: new Date() },
+  });
 };
 
 const getMyReviews = async (userId: string, queries: IQueryParams) => {
@@ -84,7 +102,7 @@ const getMyReviews = async (userId: string, queries: IQueryParams) => {
     searchableFields: reviewSearchableFields,
     filterableFields: reviewFilterableFields,
   })
-    .where({ userId })
+    .where({ userId, isDeleted: false })
     .sort()
     .paginate()
     .include(reviewIncludeConfig);
@@ -120,8 +138,9 @@ const deleteMyReview = async (userId: string, reviewId: string) => {
     throw new AppError(404, 'Review not found or you do not have permission to delete it');
   }
 
-  return await prisma.review.delete({
+  return await prisma.review.update({
     where: { id: reviewId },
+    data: { isDeleted: true, deletedAt: new Date() },
   });
 };
 
@@ -130,6 +149,8 @@ export const ReviewService = {
   getItemReviews,
   getAllReviews,
   approveReview,
+  featureReview,
+  unfeatureReview,
   deleteReview,
   getMyReviews,
   updateMyReview,

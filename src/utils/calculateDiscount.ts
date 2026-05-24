@@ -1,4 +1,5 @@
-import { DiscountType } from '@prisma/client';
+import { DiscountType } from "@prisma/client";
+
 
 export const calculateDiscount = (
   subtotal: number,

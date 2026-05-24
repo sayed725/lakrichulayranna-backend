@@ -15,7 +15,16 @@ const updateReviewSchema = z.object({
   }),
 });
 
+const adminUpdateReviewSchema = z.object({
+  body: z.object({
+    isApproved: z.boolean().optional(),
+    isFeatured: z.boolean().optional(),
+    isDeleted: z.boolean().optional(),
+  }),
+});
+
 export const ReviewValidation = {
   createReviewSchema,
   updateReviewSchema,
+  adminUpdateReviewSchema,
 };

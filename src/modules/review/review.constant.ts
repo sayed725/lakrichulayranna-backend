@@ -1,8 +1,8 @@
-import { Prisma } from '../../generated';
+import { Prisma } from "@prisma/client";
 
 export const reviewSearchableFields = ['comment', 'user.name'];
 
-export const reviewFilterableFields = ['rating', 'isApproved', 'itemId', 'userId'];
+export const reviewFilterableFields = ['rating', 'isApproved', 'isFeatured', 'isDeleted', 'itemId', 'userId'];
 
 export const reviewIncludeConfig: Prisma.ReviewInclude = {
   user: {

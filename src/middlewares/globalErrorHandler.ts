@@ -1,11 +1,13 @@
 import { ErrorRequestHandler } from 'express';
 import { ZodError } from 'zod';
-import { Prisma } from '@prisma/client';
+
 import AppError from '../errors/AppError';
 import handleZodError from '../errors/handleZodError';
 import handlePrismaError from '../errors/handlePrismaError';
 import { env } from '../config/env';
 import { Messages } from '../constants/messages';
+import { Prisma } from '../generated/client';
+
 
 const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
   let statusCode = 500;

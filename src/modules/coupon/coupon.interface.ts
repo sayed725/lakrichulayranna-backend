@@ -1,4 +1,4 @@
-import { DiscountType } from '@prisma/client';
+import { DiscountType } from "../../generated/client";
 
 export type TCreateCoupon = {
   code: string;

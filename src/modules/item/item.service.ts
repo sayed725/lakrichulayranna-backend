@@ -4,7 +4,7 @@ import { TCreateItem, TUpdateItem } from './item.interface';
 import { generateSlug } from '../../utils/generateSlug';
 import { calculatePagination } from '../../utils/pagination';
 import { QueryBuilder } from '../../utils/QueryBuilder';
-import { Prisma } from '@prisma/client';
+import { Prisma } from "../../generated/client";
 
 import { itemFilterableFields, itemIncludeConfig, itemSearchableFields } from './item.constant';
 import { IQueryParams } from '../../interfaces/query.interface';

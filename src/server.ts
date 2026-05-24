@@ -1,8 +1,8 @@
 import app from './app';
 import { env } from './config/env';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from './lib/prisma';
 
-export const prisma = new PrismaClient();
+export { prisma };
 
 const startServer = async () => {
   try {

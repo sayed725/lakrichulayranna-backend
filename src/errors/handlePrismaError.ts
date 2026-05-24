@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma } from "../generated/client";
 
 const handlePrismaError = (err: Prisma.PrismaClientKnownRequestError) => {
   let message = 'Database Error';

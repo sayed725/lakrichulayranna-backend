@@ -1,0 +1,189 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  CUSTOMER
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  COD
+  ONLINE
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(CUSTOMER)
+  phone     String?
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orders    Order[]
+  reviews   Review[]
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  imageUrl    String?
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  items       Item[]
+}
+
+model Item {
+  id            String      @id @default(uuid())
+  name          String
+  slug          String      @unique
+  description   String
+  price         Float
+  discountPrice Float?
+  imageUrl      String
+  images        String[]
+  categoryId    String
+  isAvailable   Boolean     @default(true)
+  isFeatured    Boolean     @default(false)
+  tags          String[]
+  createdAt     DateTime    @default(now())
+  category      Category    @relation(fields: [categoryId], references: [id])
+  orderItems    OrderItem[]
+  reviews       Review[]
+
+  @@index([categoryId])
+}
+
+model Coupon {
+  id                String       @id @default(uuid())
+  code              String       @unique
+  title             String
+  discountType      DiscountType @default(FIXED)
+  discountValue     Float
+  minOrderAmount    Float?       @default(0)
+  maxDiscountAmount Float?
+  expiryDate        DateTime
+  usageLimit        Int?
+  usedCount         Int          @default(0)
+  isActive          Boolean      @default(true)
+  description       String?
+  isDeleted         Boolean      @default(false)
+  deletedAt         DateTime?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  orders            Order[]
+
+  @@map("coupons")
+}
+
+model Order {
+  id              String        @id @default(uuid())
+  orderNumber     String        @unique
+  userId          String
+  subtotal        Float
+  discountAmount  Float         @default(0)
+  total           Float
+  couponId        String?
+  couponCode      String?
+  status          OrderStatus   @default(PENDING)
+  paymentMethod   PaymentMethod
+  paymentStatus   PaymentStatus @default(PENDING)
+  deliveryAddress Json
+  invoicePdf      String?
+  notes           String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  coupon          Coupon?       @relation(fields: [couponId], references: [id])
+  user            User          @relation(fields: [userId], references: [id])
+  items           OrderItem[]
+
+  @@index([userId])
+}
+
+model OrderItem {
+  id        String @id @default(uuid())
+  orderId   String
+  itemId    String
+  itemName  String
+  itemPrice Float
+  quantity  Int
+  total     Float
+  item      Item   @relation(fields: [itemId], references: [id])
+  order     Order  @relation(fields: [orderId], references: [id])
+
+  @@index([orderId])
+  @@index([itemId])
+}
+
+model Review {
+  id         String   @id @default(uuid())
+  userId     String
+  itemId     String
+  rating     Int
+  comment    String?
+  isFeatured Boolean  @default(false)
+  isApproved Boolean  @default(false)
+  isDeleted  Boolean  @default(false)
+  deletedAt  DateTime?
+  createdAt  DateTime @default(now())
+  item       Item     @relation(fields: [itemId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([itemId])
+}
+
+model Banner {
+  id        String   @id @default(uuid())
+  title     String
+  subtitle  String?
+  imageUrl  String
+  link      String?
+  isActive  Boolean  @default(true)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model Setting {
+  id           Int      @id @default(1)
+  siteName     String
+  tagline      String?
+  logoUrl      String?
+  phone        String
+  email        String
+  address      String
+  openTime     String
+  closeTime    String
+  facebookUrl  String?
+  instagramUrl String?
+  updatedAt    DateTime @updatedAt
+}
