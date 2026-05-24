@@ -8,6 +8,7 @@ import { CouponRoutes } from '../modules/coupon/coupon.route';
 import { OrderRoutes } from '../modules/order/order.route';
 import { ReviewRoutes } from '../modules/review/review.route';
 import { SettingRoutes } from '../modules/setting/setting.route';
+import { ContactRoutes } from '../modules/contact/contact.route';
 
 const router = express.Router();
 
@@ -21,6 +22,7 @@ const moduleRoutes = [
   { path: '/orders', route: OrderRoutes },
   { path: '/reviews', route: ReviewRoutes },
   { path: '/settings', route: SettingRoutes },
+  { path: '/contacts', route: ContactRoutes },
 ];
 
 moduleRoutes.forEach((route) => router.use(route.path, route.route));

@@ -187,3 +187,16 @@ model Setting {
   instagramUrl String?
   updatedAt    DateTime @updatedAt
 }
+
+model Contact {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  phone     String?
+  isDeleted Boolean  @default(false)
+  deletedAt DateTime?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
