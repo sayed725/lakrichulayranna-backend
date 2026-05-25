@@ -72,6 +72,10 @@ model Item {
   imageUrl      String
   images        String[]
   categoryId    String
+  isSpicy       Boolean?
+  weight        String?
+  isDeleted     Boolean     @default(false)
+  deletedAt     DateTime?
   isAvailable   Boolean     @default(true)
   isFeatured    Boolean     @default(false)
   tags          String[]

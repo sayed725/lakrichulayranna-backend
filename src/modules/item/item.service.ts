@@ -31,6 +31,9 @@ const getAllItems = async (queries: IQueryParams) => {
   const queryBuilder = new QueryBuilder(prisma.item, queries, {
     searchableFields: itemSearchableFields,
     filterableFields: itemFilterableFields,
+    relationConfig: {
+      category: 'one',
+    },
   })
     .search()
     .filter()
@@ -66,7 +69,10 @@ const updateItem = async (id: string, payload: TUpdateItem) => {
 };
 
 const deleteItem = async (id: string) => {
-  return await prisma.item.delete({ where: { id } });
+  return await prisma.item.update({
+    where: { id },
+    data: { isDeleted: true, deletedAt: new Date() },
+  });
 };
 
 const toggleAvailability = async (id: string) => {

@@ -8,6 +8,8 @@ export type TCreateItem = {
   categoryId: string;
   isAvailable?: boolean;
   isFeatured?: boolean;
+  isSpicy?: boolean;
+  weight?: string;
   tags?: string[];
 };
 

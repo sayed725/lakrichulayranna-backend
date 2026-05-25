@@ -11,6 +11,8 @@ const createItemSchema = z.object({
     categoryId: z.string().uuid('Invalid category ID'),
     isAvailable: z.boolean().optional(),
     isFeatured: z.boolean().optional(),
+    isSpicy: z.boolean().optional(),
+    weight: z.string().optional(),
     tags: z.array(z.string()).optional(),
   }),
 });
@@ -26,6 +28,8 @@ const updateItemSchema = z.object({
     categoryId: z.string().uuid().optional(),
     isAvailable: z.boolean().optional(),
     isFeatured: z.boolean().optional(),
+    isSpicy: z.boolean().optional(),
+    weight: z.string().optional(),
     tags: z.array(z.string()).optional(),
   }),
 });
