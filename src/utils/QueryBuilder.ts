@@ -302,20 +302,39 @@ export class QueryBuilder<
         return result;
     }
 
-    private parseFilterValue(value: unknown): unknown {
-        if (value === "true") return true;
-        if (value === "false") return false;
-        // Prevent empty string converting to 0
-        if (
-            typeof value === "string" &&
-            value.trim() !== "" &&
-            !isNaN(Number(value))
-        ) {
-            return Number(value);
+ private parseFilterValue(value: unknown): unknown {
+    if (value === "true") return true;
+    if (value === "false") return false;
+
+    // Add JSON parsing for range filters
+    if (typeof value === "string" && value.trim().startsWith("{")) {
+        try {
+            const parsed = JSON.parse(value);
+            // Recursively parse values inside the JSON object
+            if (typeof parsed === "object" && parsed !== null) {
+                const result: Record<string, unknown> = {};
+                for (const key in parsed) {
+                    result[key] = this.parseFilterValue(parsed[key]);
+                }
+                return result;
+            }
+            return parsed;
+        } catch {
+            // Invalid JSON, return as-is
         }
-        if (Array.isArray(value)) return value.map((v) => this.parseFilterValue(v));
-        return value;
     }
+
+    // Prevent empty string converting to 0
+    if (
+        typeof value === "string" &&
+        value.trim() !== "" &&
+        !isNaN(Number(value))
+    ) {
+        return Number(value);
+    }
+    if (Array.isArray(value)) return value.map((v) => this.parseFilterValue(v));
+    return value;
+}
 
     private parseRangeFilter(value: Record<string, any>): any {
         const rangeQuery: any = {};
