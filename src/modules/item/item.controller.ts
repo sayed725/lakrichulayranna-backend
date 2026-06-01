@@ -14,8 +14,8 @@ const getAllItems = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, { statusCode: 200, success: true, message: 'Items retrieved', meta: result.meta, data: result.data });
 });
 
-const getItemBySlug = catchAsync(async (req: Request, res: Response) => {
-  const result = await ItemService.getItemBySlug(req.params.slug as string);
+const getItemById = catchAsync(async (req: Request, res: Response) => {
+  const result = await ItemService.getItemById(req.params.id as string);
   sendResponse(res, { statusCode: 200, success: true, message: 'Item retrieved', data: result });
 });
 
@@ -29,16 +29,13 @@ const deleteItem = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, { statusCode: 200, success: true, message: 'Item deleted', data: null });
 });
 
-const toggleAvailability = catchAsync(async (req: Request, res: Response) => {
-  const result = await ItemService.toggleAvailability(req.params.id as string);
-  sendResponse(res, { statusCode: 200, success: true, message: 'Item availability toggled', data: result });
-});
+
 
 export const ItemController = {
   createItem,
   getAllItems,
-  getItemBySlug,
+  getItemById,
   updateItem,
   deleteItem,
-  toggleAvailability,
+  
 };

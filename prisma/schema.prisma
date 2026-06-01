@@ -78,6 +78,7 @@ model Item {
   deletedAt     DateTime?
   isAvailable   Boolean     @default(true)
   isFeatured    Boolean     @default(false)
+  isBestSelling Boolean     @default(false)
   tags          String[]
   createdAt     DateTime    @default(now())
   category      Category    @relation(fields: [categoryId], references: [id])
