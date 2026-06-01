@@ -3,3 +3,7 @@ export type TUpdateProfile = {
   phone?: string;
   address?: string;
 };
+
+export type TUpdateUserStatus = {
+  status: 'ACTIVE' | 'INACTIVE' | 'BANNED';
+};

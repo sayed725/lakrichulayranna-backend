@@ -12,6 +12,7 @@ router.patch('/profile', auth, validateRequest(UserValidation.updateProfileSchem
 router.patch('/change-password', auth, validateRequest(UserValidation.changePasswordSchema), UserController.changePassword);
 
 router.get('/', auth, admin, UserController.getAllUsers);
+router.patch('/:id/status', auth, admin, validateRequest(UserValidation.updateUserStatusSchema), UserController.updateUserStatus);
 router.delete('/:id', auth, admin, UserController.deleteUser);
 
 export const UserRoutes = router;

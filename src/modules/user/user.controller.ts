@@ -29,10 +29,16 @@ const deleteUser = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, { statusCode: 200, success: true, message: 'User deleted', data: null });
 });
 
+const updateUserStatus = catchAsync(async (req: Request, res: Response) => {
+  const result = await UserService.updateUserStatus(req.params.id as string, req.body.status);
+  sendResponse(res, { statusCode: 200, success: true, message: 'User status updated', data: result });
+});
+
 export const UserController = {
   getMyProfile,
   updateProfile,
   changePassword,
   getAllUsers,
   deleteUser,
+  updateUserStatus,
 };

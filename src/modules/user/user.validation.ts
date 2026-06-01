@@ -15,7 +15,14 @@ const changePasswordSchema = z.object({
   }),
 });
 
+const updateUserStatusSchema = z.object({
+  body: z.object({
+    status: z.enum(['ACTIVE', 'INACTIVE', 'BANNED']),
+  }),
+});
+
 export const UserValidation = {
   updateProfileSchema,
   changePasswordSchema,
+  updateUserStatusSchema,
 };

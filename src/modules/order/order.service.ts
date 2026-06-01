@@ -11,6 +11,24 @@ import { orderFilterableFields, orderIncludeConfig, orderSearchableFields } from
 const createOrder = async (userId: string, payload: TCreateOrder) => {
   const { items, couponCode, paymentMethod, deliveryAddress, notes } = payload;
 
+  // Check user status
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { status: true, isDeleted: true },
+  });
+
+  if (!user || user.isDeleted) {
+    throw new AppError(404, 'User not found');
+  }
+
+  if (user.status === 'INACTIVE') {
+    throw new AppError(403, 'You are inactive. Please contact admin to activate your account.');
+  }
+
+  if (user.status === 'BANNED') {
+    throw new AppError(403, 'You are banned. Please contact admin.');
+  }
+
   let subtotal = 0;
   const orderItemsData = [];
 

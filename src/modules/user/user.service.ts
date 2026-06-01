@@ -15,6 +15,7 @@ const getMyProfile = async (userId: string) => {
       name: true,
       email: true,
       role: true,
+      status: true,
       phone: true,
       address: true,
       createdAt: true,
@@ -66,15 +67,49 @@ const getAllUsers = async (queries: IQueryParams) => {
     .filter()
     .sort()
     .paginate()
-    .omit({ password: true });
+    .omit({ password: true })
+    .include({ _count: { select: { orders: true } } }); // Add this;
 
   const result = await queryBuilder.execute();
   return result;
 };
 
 const deleteUser = async (userId: string) => {
-  await prisma.user.delete({ where: { id: userId } });
+  await prisma.user.update({
+    where: { id: userId },
+    data: { isDeleted: true, deletedAt: new Date() },
+  });
   return null;
+};
+
+const updateUserStatus = async (userId: string, status: string) => {
+  // Check if user exists and get current role
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { role: true },
+  });
+
+  if (!user) {
+    throw new AppError(404, 'User not found');
+  }
+
+  // Prevent changing status for admin users
+  if (user.role === 'ADMIN') {
+    throw new AppError(403, 'Cannot change status for admin users');
+  }
+
+  const updatedUser = await prisma.user.update({
+    where: { id: userId },
+    data: { status: status as any },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      status: true,
+    },
+  });
+  return updatedUser;
 };
 
 export const UserService = {
@@ -83,4 +118,5 @@ export const UserService = {
   changePassword,
   getAllUsers,
   deleteUser,
+  updateUserStatus,
 };
