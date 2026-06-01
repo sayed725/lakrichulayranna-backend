@@ -1,5 +1,8 @@
 import { prisma } from '../../server';
 import { TCreateContact } from './contact.interface';
+import { QueryBuilder } from '../../utils/QueryBuilder';
+import { IQueryParams } from '../../interfaces/query.interface';
+import { contactFilterableFields, contactSearchableFields } from './contact.constant';
 
 const createContact = async (payload: TCreateContact) => {
   return await prisma.contact.create({
@@ -7,11 +10,19 @@ const createContact = async (payload: TCreateContact) => {
   });
 };
 
-const getAllContacts = async () => {
-  return await prisma.contact.findMany({
-    where: { isDeleted: false },
-    orderBy: { createdAt: 'desc' },
-  });
+const getAllContacts = async (queries: IQueryParams) => {
+  const queryBuilder = new QueryBuilder(prisma.contact, queries, {
+    searchableFields: contactSearchableFields,
+    filterableFields: contactFilterableFields,
+  })
+    .where({ isDeleted: false })
+    .search()
+    .filter()
+    .sort()
+    .paginate();
+
+  const result = await queryBuilder.execute();
+  return result;
 };
 
 const getContactById = async (id: string) => {

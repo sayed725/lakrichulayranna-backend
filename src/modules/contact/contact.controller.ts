@@ -3,6 +3,7 @@ import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { ContactService } from './contact.service';
 import { ContactValidation } from './contact.validation';
+import { IQueryParams } from '../../interfaces/query.interface';
 
 const createContact = catchAsync(async (req: Request, res: Response) => {
   const result = await ContactService.createContact(req.body);
@@ -10,8 +11,8 @@ const createContact = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllContacts = catchAsync(async (req: Request, res: Response) => {
-  const result = await ContactService.getAllContacts();
-  sendResponse(res, { statusCode: 200, success: true, message: 'All contacts retrieved', data: result });
+  const result = await ContactService.getAllContacts(req.query as unknown as IQueryParams);
+  sendResponse(res, { statusCode: 200, success: true, message: 'All contacts retrieved', meta: result.meta, data: result.data });
 });
 
 const getContactById = catchAsync(async (req: Request, res: Response) => {
