@@ -6,6 +6,7 @@ const createCategorySchema = z.object({
     imageUrl: z.string().optional(),
     description: z.string().optional(),
     isActive: z.boolean().optional(),
+    isFeatured: z.boolean().optional(),
   }),
 });
 
@@ -15,6 +16,7 @@ const updateCategorySchema = z.object({
     imageUrl: z.string().optional(),
     description: z.string().optional(),
     isActive: z.boolean().optional(),
+    isFeatured: z.boolean().optional(),
   }),
 });
 

@@ -69,24 +69,29 @@ const getAllReviews = async (queries: IQueryParams) => {
   return result;
 };
 
-const approveReview = async (id: string) => {
-  return await prisma.review.update({
-    where: { id },
-    data: { isApproved: true },
-  });
-};
+const updateReviewStatus = async (id: string, status: string) => {
+  const updateData: Record<string, boolean> = {};
 
-const featureReview = async (id: string) => {
-  return await prisma.review.update({
-    where: { id },
-    data: { isFeatured: true },
-  });
-};
+  switch (status) {
+    case 'approve':
+      updateData.isApproved = true;
+      break;
+    case 'unapprove':
+      updateData.isApproved = false;
+      break;
+    case 'feature':
+      updateData.isFeatured = true;
+      break;
+    case 'unfeature':
+      updateData.isFeatured = false;
+      break;
+    default:
+      throw new AppError(400, 'Invalid status. Valid statuses: approve, unapprove, feature, unfeature');
+  }
 
-const unfeatureReview = async (id: string) => {
   return await prisma.review.update({
     where: { id },
-    data: { isFeatured: false },
+    data: updateData,
   });
 };
 
@@ -148,9 +153,7 @@ export const ReviewService = {
   createReview,
   getItemReviews,
   getAllReviews,
-  approveReview,
-  featureReview,
-  unfeatureReview,
+  updateReviewStatus,
   deleteReview,
   getMyReviews,
   updateMyReview,

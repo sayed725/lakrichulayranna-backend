@@ -19,19 +19,9 @@ const getAllReviews = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, { statusCode: 200, success: true, message: 'All reviews retrieved', meta: result.meta, data: result.data });
 });
 
-const approveReview = catchAsync(async (req: Request, res: Response) => {
-  const result = await ReviewService.approveReview(req.params.id as string);
-  sendResponse(res, { statusCode: 200, success: true, message: 'Review approved', data: result });
-});
-
-const featureReview = catchAsync(async (req: Request, res: Response) => {
-  const result = await ReviewService.featureReview(req.params.id as string);
-  sendResponse(res, { statusCode: 200, success: true, message: 'Review featured', data: result });
-});
-
-const unfeatureReview = catchAsync(async (req: Request, res: Response) => {
-  const result = await ReviewService.unfeatureReview(req.params.id as string);
-  sendResponse(res, { statusCode: 200, success: true, message: 'Review unfeatured', data: result });
+const updateReviewStatus = catchAsync(async (req: Request, res: Response) => {
+  const result = await ReviewService.updateReviewStatus(req.params.id as string, req.params.status as string);
+  sendResponse(res, { statusCode: 200, success: true, message: 'Review status updated', data: result });
 });
 
 const deleteReview = catchAsync(async (req: Request, res: Response) => {
@@ -58,9 +48,7 @@ export const ReviewController = {
   createReview,
   getItemReviews,
   getAllReviews,
-  approveReview,
-  featureReview,
-  unfeatureReview,
+  updateReviewStatus,
   deleteReview,
   getMyReviews,
   updateMyReview,

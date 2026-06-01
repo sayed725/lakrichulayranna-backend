@@ -3,6 +3,7 @@ export type TCreateCategory = {
   imageUrl?: string;
   description?: string;
   isActive?: boolean;
+  isFeatured?: boolean;
 };
 
 export type TUpdateCategory = Partial<TCreateCategory>;

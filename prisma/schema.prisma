@@ -58,6 +58,7 @@ model Category {
   imageUrl    String?
   description String?
   isActive    Boolean  @default(true)
+  isFeatured  Boolean  @default(false)
   createdAt   DateTime @default(now())
   items       Item[]
 }
