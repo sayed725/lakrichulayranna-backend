@@ -11,6 +11,5 @@ router.get('/', BannerController.getAllBanners);
 router.post('/', auth, admin, validateRequest(BannerValidation.createBannerSchema), BannerController.createBanner);
 router.patch('/:id', auth, admin, validateRequest(BannerValidation.updateBannerSchema), BannerController.updateBanner);
 router.delete('/:id', auth, admin, BannerController.deleteBanner);
-router.patch('/:id/toggle', auth, admin, BannerController.toggleBanner);
 
 export const BannerRoutes = router;

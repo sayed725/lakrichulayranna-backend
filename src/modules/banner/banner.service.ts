@@ -14,6 +14,7 @@ const getAllBanners = async (queries: IQueryParams) => {
     searchableFields: bannerSearchableFields,
     filterableFields: bannerFilterableFields,
   })
+    .where({ isDeleted: false })
     .search()
     .filter()
     .sort()
@@ -32,16 +33,9 @@ const updateBanner = async (id: string, payload: TUpdateBanner) => {
 };
 
 const deleteBanner = async (id: string) => {
-  return await prisma.banner.delete({ where: { id } });
-};
-
-const toggleBanner = async (id: string) => {
-  const banner = await prisma.banner.findUnique({ where: { id } });
-  if (!banner) throw new AppError(404, 'Banner not found');
-
   return await prisma.banner.update({
     where: { id },
-    data: { isActive: !banner.isActive },
+    data: { isDeleted: true, deletedAt: new Date() },
   });
 };
 
@@ -50,5 +44,4 @@ export const BannerService = {
   getAllBanners,
   updateBanner,
   deleteBanner,
-  toggleBanner,
 };

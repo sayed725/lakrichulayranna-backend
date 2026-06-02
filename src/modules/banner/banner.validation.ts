@@ -2,12 +2,15 @@ import { z } from 'zod';
 
 const createBannerSchema = z.object({
   body: z.object({
-    title: z.string().min(1, 'Title is required'),
+    title: z.string().optional(),
     subtitle: z.string().optional(),
-    imageUrl: z.string().url('Invalid image URL'),
-    link: z.string().optional(),
-    isActive: z.boolean().optional(),
+    badge: z.string().optional(),
+    image: z.string().url('Invalid image URL').optional(),
     order: z.number().int().optional(),
+    banner: z.boolean().optional(),
+    isActive: z.boolean().optional(),
+    categoryId: z.string().optional(),
+    buttonText: z.string().optional(),
   }),
 });
 
@@ -15,10 +18,13 @@ const updateBannerSchema = z.object({
   body: z.object({
     title: z.string().optional(),
     subtitle: z.string().optional(),
-    imageUrl: z.string().url().optional(),
-    link: z.string().optional(),
-    isActive: z.boolean().optional(),
+    badge: z.string().optional(),
+    image: z.string().url().optional(),
     order: z.number().int().optional(),
+    banner: z.boolean().optional(),
+    isActive: z.boolean().optional(),
+    categoryId: z.string().optional(),
+    buttonText: z.string().optional(),
   }),
 });
 

@@ -24,15 +24,9 @@ const deleteBanner = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, { statusCode: 200, success: true, message: 'Banner deleted', data: null });
 });
 
-const toggleBanner = catchAsync(async (req: Request, res: Response) => {
-  const result = await BannerService.toggleBanner(req.params.id as string);
-  sendResponse(res, { statusCode: 200, success: true, message: 'Banner status toggled', data: result });
-});
-
 export const BannerController = {
   createBanner,
   getAllBanners,
   updateBanner,
   deleteBanner,
-  toggleBanner,
 };

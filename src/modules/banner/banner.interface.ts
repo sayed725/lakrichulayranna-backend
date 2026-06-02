@@ -1,10 +1,13 @@
 export type TCreateBanner = {
-  title: string;
+  title?: string;
   subtitle?: string;
-  imageUrl: string;
-  link?: string;
-  isActive?: boolean;
+  badge?: string;
+  image?: string;
   order?: number;
+  banner?: boolean;
+  isActive?: boolean;
+  categoryId?: string;
+  buttonText?: string;
 };
 
 export type TUpdateBanner = Partial<TCreateBanner>;
