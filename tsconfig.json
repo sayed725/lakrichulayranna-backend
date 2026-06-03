@@ -5,8 +5,7 @@
         "outDir": "./dist",
         // Environment Settings
         "module": "ESNext",
-        // "moduleResolution": "node",
-        "moduleResolution": "bundler",
+        "moduleResolution": "node",
         "target": "ES2023",
         "types": ["node"],
         // For nodejs:
@@ -22,7 +21,8 @@
         "isolatedModules": true,
         "noUncheckedSideEffectImports": true,
         "moduleDetection": "force",
-        "skipLibCheck": true
+        "skipLibCheck": true,
+        "composite": false
     },
     "include": [
         "src/**/*",

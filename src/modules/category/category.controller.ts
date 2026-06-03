@@ -29,10 +29,16 @@ const deleteCategory = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, { statusCode: 200, success: true, message: 'Category deleted', data: null });
 });
 
+const getHomeCategories = catchAsync(async (req: Request, res: Response) => {
+  const result = await CategoryService.getHomeCategories(req.query as unknown as IQueryParams);
+  sendResponse(res, { statusCode: 200, success: true, message: 'Home categories retrieved successfully', meta: result.meta, data: result.data });
+});
+
 export const CategoryController = {
   createCategory,
   getCategories,
   getCategoryBySlug,
   updateCategory,
   deleteCategory,
+  getHomeCategories,
 };

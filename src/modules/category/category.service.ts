@@ -76,10 +76,39 @@ const deleteCategory = async (id: string) => {
   return await prisma.category.delete({ where: { id } });
 };
 
+const getHomeCategories = async (queries: IQueryParams) => {
+  const includeItems = queries.includeItems === 'true';
+  const itemsLimit = Number(queries.itemsLimit) || 10;
+  
+  const includeConfig = includeItems
+    ? {
+        items: {
+          where: { isAvailable: true, isCategoryFeatured: true },
+          take: itemsLimit,
+        },
+      }
+    : categoryIncludeConfig;
+
+  const queryBuilder = new QueryBuilder(prisma.category, queries, {
+    searchableFields: categorySearchableFields,
+    filterableFields: categoryFilterableFields,
+  })
+    .where({ isFeatured: true })
+    .search()
+    .filter()
+    .sort()
+    .paginate()
+    .include(includeConfig);
+
+  const result = await queryBuilder.execute();
+  return result;
+};
+
 export const CategoryService = {
   createCategory,
   getCategories,
   getCategoryBySlug,
   updateCategory,
   deleteCategory,
+  getHomeCategories,
 };
