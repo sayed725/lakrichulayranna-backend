@@ -1,4 +1,4 @@
-import { DiscountType } from "@prisma/client";
+import { DiscountType } from "../generated/enums";
 
 
 export const calculateDiscount = (

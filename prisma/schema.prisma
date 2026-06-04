@@ -126,9 +126,13 @@ model Coupon {
 model Order {
   id              String        @id @default(uuid())
   orderNumber     String        @unique
-  userId          String
+  userId          String?
+  customerName    String?
+  customerPhone   String?
+  customerEmail   String?
   subtotal        Float
   discountAmount  Float         @default(0)
+  deliveryCharge  Float         @default(0)
   total           Float
   couponId        String?
   couponCode      String?
@@ -136,12 +140,13 @@ model Order {
   paymentMethod   PaymentMethod
   paymentStatus   PaymentStatus @default(PENDING)
   deliveryAddress Json
+  isInsideDhaka   Boolean       @default(true)
   invoicePdf      String?
   notes           String?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   coupon          Coupon?       @relation(fields: [couponId], references: [id])
-  user            User          @relation(fields: [userId], references: [id])
+  user            User?         @relation(fields: [userId], references: [id])
   items           OrderItem[]
 
   @@index([userId])

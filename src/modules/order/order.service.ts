@@ -8,28 +8,31 @@ import { QueryBuilder } from '../../utils/QueryBuilder';
 import { IQueryParams } from '../../interfaces/query.interface';
 import { orderFilterableFields, orderIncludeConfig, orderSearchableFields } from './order.constant';
 
-const createOrder = async (userId: string, payload: TCreateOrder) => {
-  const { items, couponCode, paymentMethod, deliveryAddress, notes } = payload;
+const createOrder = async (userId: string | null, payload: TCreateOrder) => {
+  const { items, couponCode, paymentMethod, deliveryAddress, isInsideDhaka, customerName, customerPhone, customerEmail, deliveryCharge, notes } = payload;
 
-  // Check user status
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { status: true, isDeleted: true },
-  });
+  // Check user status if userId is provided
+  if (userId) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { status: true, isDeleted: true },
+    });
 
-  if (!user || user.isDeleted) {
-    throw new AppError(404, 'User not found');
-  }
+    if (!user || user.isDeleted) {
+      throw new AppError(404, 'User not found');
+    }
 
-  if (user.status === 'INACTIVE') {
-    throw new AppError(403, 'You are inactive. Please contact admin to activate your account.');
-  }
+    if (user.status === 'INACTIVE') {
+      throw new AppError(403, 'You are inactive. Please contact admin to activate your account.');
+    }
 
-  if (user.status === 'BANNED') {
-    throw new AppError(403, 'You are banned. Please contact admin.');
+    if (user.status === 'BANNED') {
+      throw new AppError(403, 'You are banned. Please contact admin.');
+    }
   }
 
   let subtotal = 0;
+  let totalWeight = 0;
   const orderItemsData = [];
 
   for (const item of items) {
@@ -42,6 +45,10 @@ const createOrder = async (userId: string, payload: TCreateOrder) => {
     const total = price * item.quantity;
     subtotal += total;
 
+    // Calculate weight (assuming weight is stored as string like "500g", need to parse)
+    const weightValue = product.weight ? parseInt(product.weight.replace(/\D/g, '')) || 0 : 0;
+    totalWeight += weightValue * item.quantity;
+
     orderItemsData.push({
       itemId: product.id,
       itemName: product.name,
@@ -50,6 +57,26 @@ const createOrder = async (userId: string, payload: TCreateOrder) => {
       total,
     });
   }
+
+  // Validate total weight (max 5000g)
+  if (totalWeight > 5000) {
+    throw new AppError(400, 'Order weight cannot exceed 5000g');
+  }
+
+  // Calculate delivery charge based on isInsideDhaka
+  const baseDeliveryCharge = isInsideDhaka !== undefined ? (isInsideDhaka ? 100 : 150) : 100;
+
+  // Calculate extra charge for weight over 1000g (10tk per 1000g)
+  let extraCharge = 0;
+  if (totalWeight > 1000) {
+    const extraWeight = totalWeight - 1000;
+    extraCharge = Math.ceil(extraWeight / 1000) * 10;
+  }
+
+  const calculatedDeliveryCharge = baseDeliveryCharge + extraCharge;
+
+  // Use provided delivery charge if specified, otherwise use calculated
+  const finalDeliveryCharge = deliveryCharge ?? calculatedDeliveryCharge;
 
   let discountAmount = 0;
   let couponId = null;
@@ -80,20 +107,25 @@ const createOrder = async (userId: string, payload: TCreateOrder) => {
     }
   }
 
-  const totalAmount = subtotal - discountAmount;
+  const totalAmount = subtotal - discountAmount + finalDeliveryCharge;
   const orderNumber = generateOrderNumber();
 
   const order = await prisma.order.create({
     data: {
       orderNumber,
       userId,
+      customerName: customerName ?? null,
+      customerPhone: customerPhone ?? null,
+      customerEmail: customerEmail ?? null,
       subtotal,
       discountAmount,
+      deliveryCharge: finalDeliveryCharge,
       total: totalAmount,
       couponId,
       couponCode: couponCode ?? null,
       paymentMethod,
       deliveryAddress,
+      isInsideDhaka: isInsideDhaka ?? true,
       notes: notes ?? null,
       items: {
         create: orderItemsData,
@@ -101,7 +133,7 @@ const createOrder = async (userId: string, payload: TCreateOrder) => {
     },
     include: {
       items: true,
-      user: { select: { name: true, email: true } },
+      user: userId ? { select: { name: true, email: true } } : false,
     },
   });
 
@@ -158,6 +190,17 @@ const getAllOrders = async (queries: IQueryParams) => {
   return result;
 };
 
+const getOrderNumber = async (orderNumber: string) => {
+  const order = await prisma.order.findUnique({
+    where: { orderNumber },
+    include: { items: { include: { item: true } }, user: { select: { id: true, name: true, email: true, phone: true } } },
+  });
+
+  if (!order) throw new AppError(404, 'Order not found');
+
+  return order;
+};
+
 const updateOrderStatus = async (id: string, status: any) => {
   return await prisma.order.update({
     where: { id },
@@ -169,6 +212,7 @@ export const OrderService = {
   createOrder,
   getMyOrders,
   getOrderById,
+  getOrderNumber,
   getAllOrders,
   updateOrderStatus,
 };
