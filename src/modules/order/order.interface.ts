@@ -22,3 +22,24 @@ export type TCreateOrder = {
   deliveryCharge?: number;
   notes?: string;
 };
+
+export type TUpdateOrderItems = {
+  items: TOrderItem[];
+};
+
+export type TUpdateOrder = {
+  customerName?: string;
+  customerPhone?: string;
+  customerEmail?: string;
+  deliveryAddress?: {
+    area: string;
+    city: string;
+    street: string;
+    country: string;
+  };
+  isInsideDhaka?: boolean;
+  deliveryCharge?: number;
+  notes?: string;
+  status?: string;
+  paymentStatus?: string;
+};

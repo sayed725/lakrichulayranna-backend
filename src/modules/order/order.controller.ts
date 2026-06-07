@@ -35,11 +35,29 @@ const updateOrderStatus = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, { statusCode: 200, success: true, message: 'Order status updated', data: result });
 });
 
+const deleteOrder = catchAsync(async (req: Request, res: Response) => {
+  const result = await OrderService.deleteOrder(req.params.id as string);
+  sendResponse(res, { statusCode: 200, success: true, message: 'Order deleted successfully', data: result });
+});
+
+const updateOrderItems = catchAsync(async (req: Request, res: Response) => {
+  const result = await OrderService.updateOrderItems(req.params.id as string, req.body);
+  sendResponse(res, { statusCode: 200, success: true, message: 'Order items updated successfully', data: result });
+});
+
+const updateOrder = catchAsync(async (req: Request, res: Response) => {
+  const result = await OrderService.updateOrder(req.params.id as string, req.body);
+  sendResponse(res, { statusCode: 200, success: true, message: 'Order updated successfully', data: result });
+});
+
 export const OrderController = {
   createOrder,
   getMyOrders,
   getOrderById,
   getOrderNumber,
   getAllOrders,
+  deleteOrder,
+  updateOrder,
+  updateOrderItems,
   updateOrderStatus,
 };

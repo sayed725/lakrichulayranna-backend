@@ -1,6 +1,6 @@
 import { prisma } from '../../server';
 import AppError from '../../errors/AppError';
-import { TCreateOrder } from './order.interface';
+import { TCreateOrder, TUpdateOrder, TUpdateOrderItems } from './order.interface';
 import { generateOrderNumber } from '../../utils/generateOrderNumber';
 import { generateInvoicePdf } from '../../utils/invoiceGenerator';
 import { calculatePagination } from '../../utils/pagination';
@@ -184,7 +184,8 @@ const getAllOrders = async (queries: IQueryParams) => {
     .filter()
     .sort()
     .paginate()
-    .include(orderIncludeConfig);
+    .include(orderIncludeConfig)
+    .where({ isDeleted: false });
 
   const result = await queryBuilder.execute();
   return result;
@@ -201,7 +202,219 @@ const getOrderNumber = async (orderNumber: string) => {
   return order;
 };
 
+const deleteOrder = async (id: string) => {
+  const order = await prisma.order.findUnique({
+    where: { id },
+  });
+
+  if (!order) {
+    throw new AppError(404, 'Order not found');
+  }
+
+  if (order.isDeleted) {
+    throw new AppError(400, 'Order is already deleted');
+  }
+
+  if (order.status === 'DELIVERED') {
+    throw new AppError(400, 'Cannot delete delivered order');
+  }
+
+  return await prisma.order.update({
+    where: { id },
+    data: {
+      isDeleted: true,
+      deletedAt: new Date(),
+    },
+  });
+};
+
+const updateOrderItems = async (id: string, payload: TUpdateOrderItems) => {
+  const { items } = payload;
+
+  // Check if order exists
+  const order = await prisma.order.findUnique({
+    where: { id },
+    include: { items: true },
+  });
+
+  if (!order) {
+    throw new AppError(404, 'Order not found');
+  }
+
+  if (order.isDeleted) {
+    throw new AppError(400, 'Cannot update deleted order');
+  }
+
+  if (order.status === 'DELIVERED') {
+    throw new AppError(400, 'Cannot update delivered order');
+  }
+
+  // Delete existing order items
+  await prisma.orderItem.deleteMany({
+    where: { orderId: id },
+  });
+
+  // Calculate new subtotal and total weight
+  let subtotal = 0;
+  let totalWeight = 0;
+  const orderItemsData = [];
+
+  for (const item of items) {
+    const product = await prisma.item.findUnique({ where: { id: item.itemId } });
+    if (!product || !product.isAvailable) {
+      throw new AppError(400, `Item ${item.itemId} is unavailable or does not exist`);
+    }
+
+    const price = product.discountPrice ?? product.price;
+    const total = price * item.quantity;
+    subtotal += total;
+
+    // Calculate weight
+    const weightValue = product.weight ? parseInt(product.weight.replace(/\D/g, '')) || 0 : 0;
+    totalWeight += weightValue * item.quantity;
+
+    orderItemsData.push({
+      itemId: product.id,
+      itemName: product.name,
+      itemPrice: price,
+      quantity: item.quantity,
+      total,
+    });
+  }
+
+  // Validate total weight (max 5000g)
+  if (totalWeight > 5000) {
+    throw new AppError(400, 'Order weight cannot exceed 5000g');
+  }
+
+  // Calculate delivery charge based on isInsideDhaka
+  const baseDeliveryCharge = order.isInsideDhaka ? 100 : 150;
+
+  // Calculate extra charge for weight over 1000g (10tk per 1000g)
+  let extraCharge = 0;
+  if (totalWeight > 1000) {
+    const extraWeight = totalWeight - 1000;
+    extraCharge = Math.ceil(extraWeight / 1000) * 10;
+  }
+
+  const finalDeliveryCharge = baseDeliveryCharge + extraCharge;
+
+  // Recalculate discount if coupon exists
+  let discountAmount = order.discountAmount;
+  if (order.couponId) {
+    const coupon = await prisma.coupon.findUnique({ where: { id: order.couponId } });
+    if (coupon && coupon.isActive && !coupon.isDeleted) {
+      if (new Date(coupon.expiryDate) > new Date()) {
+        if (!coupon.minOrderAmount || subtotal >= coupon.minOrderAmount) {
+          let discount = coupon.discountType === 'FIXED' 
+            ? coupon.discountValue 
+            : (subtotal * coupon.discountValue) / 100;
+          
+          if (coupon.maxDiscountAmount) {
+            discount = Math.min(discount, coupon.maxDiscountAmount);
+          }
+          
+          discountAmount = Math.min(subtotal, discount);
+        }
+      }
+    }
+  }
+
+  const totalAmount = subtotal - discountAmount + finalDeliveryCharge;
+
+  // Update order with new items and recalculated values
+  const updatedOrder = await prisma.order.update({
+    where: { id },
+    data: {
+      subtotal,
+      discountAmount,
+      deliveryCharge: finalDeliveryCharge,
+      total: totalAmount,
+      items: {
+        create: orderItemsData,
+      },
+    },
+    include: {
+      items: true,
+      user: { select: { id: true, name: true, email: true, phone: true } },
+    },
+  });
+
+  return updatedOrder;
+};
+
+const updateOrder = async (id: string, payload: TUpdateOrder) => {
+  const order = await prisma.order.findUnique({
+    where: { id },
+  });
+
+  if (!order) {
+    throw new AppError(404, 'Order not found');
+  }
+
+  if (order.isDeleted) {
+    throw new AppError(400, 'Cannot update deleted order');
+  }
+
+  if (order.status === 'DELIVERED') {
+    throw new AppError(400, 'Cannot update delivered order');
+  }
+
+  const updateData: any = {};
+
+  if (payload.customerName !== undefined) {
+    updateData.customerName = payload.customerName;
+  }
+  if (payload.customerPhone !== undefined) {
+    updateData.customerPhone = payload.customerPhone;
+  }
+  if (payload.customerEmail !== undefined) {
+    updateData.customerEmail = payload.customerEmail;
+  }
+  if (payload.deliveryAddress !== undefined) {
+    updateData.deliveryAddress = payload.deliveryAddress;
+  }
+  if (payload.isInsideDhaka !== undefined) {
+    updateData.isInsideDhaka = payload.isInsideDhaka;
+  }
+  if (payload.deliveryCharge !== undefined) {
+    updateData.deliveryCharge = payload.deliveryCharge;
+  }
+  if (payload.notes !== undefined) {
+    updateData.notes = payload.notes;
+  }
+  if (payload.status !== undefined) {
+    updateData.status = payload.status;
+  }
+  if (payload.paymentStatus !== undefined) {
+    updateData.paymentStatus = payload.paymentStatus;
+  }
+
+  const updatedOrder = await prisma.order.update({
+    where: { id },
+    data: updateData,
+    include: {
+      items: true,
+      user: { select: { id: true, name: true, email: true, phone: true } },
+    },
+  });
+
+  return updatedOrder;
+};
+
 const updateOrderStatus = async (id: string, status: any) => {
+  const order = await prisma.order.findUnique({
+    where: { id },
+  });
+
+  if (!order) {
+    throw new AppError(404, 'Order not found');
+  }
+
+  if (order.status === 'DELIVERED') {
+    throw new AppError(400, 'Cannot update delivered order');
+  }
+
   return await prisma.order.update({
     where: { id },
     data: { status },
@@ -214,5 +427,8 @@ export const OrderService = {
   getOrderById,
   getOrderNumber,
   getAllOrders,
+  deleteOrder,
+  updateOrder,
+  updateOrderItems,
   updateOrderStatus,
 };

@@ -143,6 +143,8 @@ model Order {
   isInsideDhaka   Boolean       @default(true)
   invoicePdf      String?
   notes           String?
+  isDeleted       Boolean       @default(false)
+  deletedAt       DateTime?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   coupon          Coupon?       @relation(fields: [couponId], references: [id])
