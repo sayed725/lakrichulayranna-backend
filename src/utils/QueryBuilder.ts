@@ -60,14 +60,15 @@ export class QueryBuilder<
     }
 
     search(): this {
-        const { searchTerm } = this.queryParams;
+        const { searchTerm, search } = this.queryParams;
         const { searchableFields } = this.config;
+        const actualSearchTerm = searchTerm || search;
 
-        if (searchTerm && searchableFields && searchableFields.length > 0) {
+        if (actualSearchTerm && searchableFields && searchableFields.length > 0) {
             const searchCondition: Record<string, unknown>[] = searchableFields.map(
                 (field) => {
                     const stringFilter: PrismaStringFilter = {
-                        contains: searchTerm,
+                        contains: actualSearchTerm,
                         mode: "insensitive",
                     };
 

@@ -2,7 +2,6 @@ import { prisma } from '../../server';
 import AppError from '../../errors/AppError';
 import { TCreateOrder, TUpdateOrder, TUpdateOrderItems } from './order.interface';
 import { generateOrderNumber } from '../../utils/generateOrderNumber';
-import { generateInvoicePdf } from '../../utils/invoiceGenerator';
 import { calculatePagination } from '../../utils/pagination';
 import { QueryBuilder } from '../../utils/QueryBuilder';
 import { IQueryParams } from '../../interfaces/query.interface';
@@ -133,16 +132,9 @@ const createOrder = async (userId: string | null, payload: TCreateOrder) => {
     },
     include: {
       items: true,
-      user: userId ? { select: { name: true, email: true } } : false,
+      user: userId ? { select: { name: true, email: true, phone: true } } : false,
     },
   });
-
-  generateInvoicePdf(order).then(async (pdfPath) => {
-    await prisma.order.update({
-      where: { id: order.id },
-      data: { invoicePdf: pdfPath },
-    });
-  }).catch((err) => console.error('Failed to generate PDF invoice:', err));
 
   return order;
 };
@@ -176,9 +168,14 @@ const getOrderById = async (id: string, userId: string, role: string) => {
 };
 
 const getAllOrders = async (queries: IQueryParams) => {
+  // console.log('Search queries received:', queries);
   const queryBuilder = new QueryBuilder(prisma.order, queries, {
     searchableFields: orderSearchableFields,
     filterableFields: orderFilterableFields,
+    relationConfig: {
+      user: 'one',
+      items: 'many',
+    },
   })
     .search()
     .filter()

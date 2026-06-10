@@ -34,8 +34,8 @@ export const generateInvoicePdf = async (orderData: any): Promise<string> => {
           <strong>Status:</strong> ${orderData.status}
         </div>
         <div>
-          <strong>Customer:</strong> ${orderData.user.name}<br>
-          <strong>Phone:</strong> ${orderData.deliveryAddress?.phone || 'N/A'}<br>
+          <strong>Customer:</strong> ${orderData.user?.name || orderData.customerName || 'Guest'}<br>
+          <strong>Phone:</strong> ${orderData.customerPhone || orderData.user?.phone || 'N/A'}<br>
         </div>
       </div>
       <table>
