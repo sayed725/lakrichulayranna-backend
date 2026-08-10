@@ -15,10 +15,14 @@ const registerUser = async (payload: any) => {
 
   const hashedPassword = await hashPassword(payload.password);
   
+  // Destructure to prevent role manipulation from frontend
+  const { role, ...userData } = payload;
+
   const newUser = await prisma.user.create({
     data: {
-      ...payload,
+      ...userData,
       password: hashedPassword,
+      role: 'CUSTOMER',
     },
   });
 

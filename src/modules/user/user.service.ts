@@ -26,9 +26,12 @@ const getMyProfile = async (userId: string) => {
 };
 
 const updateProfile = async (userId: string, payload: TUpdateProfile) => {
+  // Destructure to prevent role manipulation from frontend
+  const { role, ...updateData } = payload as any;
+
   const user = await prisma.user.update({
     where: { id: userId },
-    data: payload,
+    data: updateData,
     select: {
       id: true,
       name: true,
