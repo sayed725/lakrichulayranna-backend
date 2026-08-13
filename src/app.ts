@@ -19,6 +19,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+app.get('/', (req: Request, res: Response) => res.status(200).json({ status: 'ok', message: 'Lakri Chulay Ranna Server is running' }));
 app.get('/health', (req: Request, res: Response) => res.status(200).json({ status: 'ok', message: 'Server is healthy' }));
 
 app.use('/api/v1', router);

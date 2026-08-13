@@ -27,3 +27,4 @@ prisma/seed.ts
 # OS metadata
 .DS_Store
 Thumbs.db
+.vercel
