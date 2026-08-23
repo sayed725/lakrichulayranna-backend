@@ -77,6 +77,7 @@ var AppError = class extends Error {
   constructor(statusCode, message, stack = "") {
     super(message);
     this.statusCode = statusCode;
+    Object.setPrototypeOf(this, new.target.prototype);
     if (stack) {
       this.stack = stack;
     } else {
@@ -458,7 +459,7 @@ var globalErrorHandler = (err, req, res, next) => {
     const simplifiedError = handlePrismaError_default(err);
     statusCode = simplifiedError.statusCode;
     message = simplifiedError.message;
-  } else if (err instanceof AppError_default) {
+  } else if (err instanceof AppError_default || err && typeof err === "object" && "statusCode" in err) {
     statusCode = err.statusCode;
     message = err.message;
   } else if (err instanceof Error) {
@@ -511,7 +512,10 @@ import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 var connectionString = `${env.DATABASE_URL}`;
 var adapter = new PrismaPg({ connectionString });
-var prisma = new PrismaClient({ adapter });
+var prisma = globalThis.prisma || new PrismaClient({ adapter });
+if (process.env.NODE_ENV !== "production") {
+  globalThis.prisma = prisma;
+}
 
 // src/server.ts
 var startServer = async () => {
@@ -1196,7 +1200,7 @@ var changePassword = async (userId, payload) => {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) throw new AppError_default(404, "User not found");
   const isMatched = await comparePassword(payload.oldPassword, user.password);
-  if (!isMatched) throw new AppError_default(401, "Incorrect old password");
+  if (!isMatched) throw new AppError_default(400, "Incorrect old password");
   const hashedNewPassword = await hashPassword(payload.newPassword);
   await prisma.user.update({
     where: { id: userId },
@@ -1666,6 +1670,20 @@ var getItemById = async (id) => {
   if (!item) throw new AppError_default(404, "Item not found");
   return item;
 };
+var getItemBySlug = async (slug) => {
+  const item = await prisma.item.findUnique({
+    where: { slug },
+    include: {
+      category: { select: { id: true, name: true, slug: true } },
+      reviews: {
+        where: { isApproved: true },
+        include: { user: { select: { name: true } } }
+      }
+    }
+  });
+  if (!item) throw new AppError_default(404, "Item not found");
+  return item;
+};
 var updateItem = async (id, payload) => {
   return await prisma.item.update({
     where: { id },
@@ -1682,6 +1700,7 @@ var ItemService = {
   createItem,
   getAllItems,
   getItemById,
+  getItemBySlug,
   updateItem,
   deleteItem
 };
@@ -1699,6 +1718,10 @@ var getItemById2 = catchAsync_default(async (req, res) => {
   const result = await ItemService.getItemById(req.params.id);
   sendResponse_default(res, { statusCode: 200, success: true, message: "Item retrieved", data: result });
 });
+var getItemBySlug2 = catchAsync_default(async (req, res) => {
+  const result = await ItemService.getItemBySlug(req.params.slug);
+  sendResponse_default(res, { statusCode: 200, success: true, message: "Item retrieved", data: result });
+});
 var updateItem2 = catchAsync_default(async (req, res) => {
   const result = await ItemService.updateItem(req.params.id, req.body);
   sendResponse_default(res, { statusCode: 200, success: true, message: "Item updated", data: result });
@@ -1711,6 +1734,7 @@ var ItemController = {
   createItem: createItem2,
   getAllItems: getAllItems2,
   getItemById: getItemById2,
+  getItemBySlug: getItemBySlug2,
   updateItem: updateItem2,
   deleteItem: deleteItem2
 };
@@ -1763,6 +1787,7 @@ var ItemValidation = {
 // src/modules/item/item.route.ts
 var router5 = express5.Router();
 router5.get("/", ItemController.getAllItems);
+router5.get("/slug/:slug", ItemController.getItemBySlug);
 router5.get("/:id", ItemController.getItemById);
 router5.post("/", auth_default, admin_default, adminLimiter, validateRequest_default(ItemValidation.createItemSchema), ItemController.createItem);
 router5.patch("/:id", auth_default, admin_default, adminLimiter, validateRequest_default(ItemValidation.updateItemSchema), ItemController.updateItem);
@@ -2254,6 +2279,92 @@ var updateOrderStatus = async (id, status) => {
     data: { status }
   });
 };
+var getDashboardStats = async () => {
+  const totalOrders = await prisma.order.count({ where: { isDeleted: false } });
+  const revenueAgg = await prisma.order.aggregate({
+    where: { status: "DELIVERED", isDeleted: false },
+    _sum: { total: true }
+  });
+  const totalRevenue = revenueAgg._sum.total || 0;
+  const totalItems = await prisma.item.count({ where: { isDeleted: false } });
+  const pendingOrders = await prisma.order.count({ where: { status: "PENDING", isDeleted: false } });
+  const totalUsers = await prisma.user.count({ where: { isDeleted: false, role: "CUSTOMER" } });
+  const totalCategories = await prisma.category.count({ where: { isActive: true } });
+  const totalReviews = await prisma.review.count({ where: { isDeleted: false } });
+  const totalCoupons = await prisma.coupon.count({ where: { isDeleted: false } });
+  const sevenDaysAgo = /* @__PURE__ */ new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  sevenDaysAgo.setHours(0, 0, 0, 0);
+  const recentOrdersForSales = await prisma.order.findMany({
+    where: {
+      createdAt: { gte: sevenDaysAgo },
+      status: "DELIVERED",
+      isDeleted: false
+    },
+    select: {
+      createdAt: true,
+      total: true
+    }
+  });
+  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const weeklySalesMap = {};
+  for (let i = 6; i >= 0; i--) {
+    const d = /* @__PURE__ */ new Date();
+    d.setDate(d.getDate() - i);
+    const label = dayNames[d.getDay()];
+    weeklySalesMap[label] = { sales: 0, count: 0 };
+  }
+  recentOrdersForSales.forEach((order) => {
+    const dayLabel = dayNames[new Date(order.createdAt).getDay()];
+    if (weeklySalesMap[dayLabel]) {
+      weeklySalesMap[dayLabel].sales += order.total;
+      weeklySalesMap[dayLabel].count += 1;
+    }
+  });
+  const weeklySales = Object.entries(weeklySalesMap).map(([day, data]) => ({
+    day,
+    sales: data.sales,
+    count: data.count
+  }));
+  const topSellingAgg = await prisma.orderItem.groupBy({
+    by: ["itemId", "itemName"],
+    where: {
+      order: {
+        status: "DELIVERED",
+        isDeleted: false
+      }
+    },
+    _sum: {
+      quantity: true,
+      total: true
+    },
+    orderBy: {
+      _sum: {
+        quantity: "desc"
+      }
+    },
+    take: 5
+  });
+  const mostSold = topSellingAgg.map((item) => ({
+    name: item.itemName,
+    quantity: item._sum.quantity || 0,
+    revenue: item._sum.total || 0
+  }));
+  return {
+    counts: {
+      totalOrders,
+      totalRevenue,
+      totalItems,
+      pendingOrders,
+      totalUsers,
+      totalCategories,
+      totalReviews,
+      totalCoupons
+    },
+    weeklySales,
+    mostSold
+  };
+};
 var OrderService = {
   createOrder,
   getMyOrders,
@@ -2263,7 +2374,8 @@ var OrderService = {
   deleteOrder,
   updateOrder,
   updateOrderItems,
-  updateOrderStatus
+  updateOrderStatus,
+  getDashboardStats
 };
 
 // src/modules/order/order.controller.ts
@@ -2304,6 +2416,10 @@ var updateOrder2 = catchAsync_default(async (req, res) => {
   const result = await OrderService.updateOrder(req.params.id, req.body);
   sendResponse_default(res, { statusCode: 200, success: true, message: "Order updated successfully", data: result });
 });
+var getDashboardStats2 = catchAsync_default(async (req, res) => {
+  const result = await OrderService.getDashboardStats();
+  sendResponse_default(res, { statusCode: 200, success: true, message: "Dashboard stats retrieved successfully", data: result });
+});
 var OrderController = {
   createOrder: createOrder2,
   getMyOrders: getMyOrders2,
@@ -2313,7 +2429,8 @@ var OrderController = {
   deleteOrder: deleteOrder2,
   updateOrder: updateOrder2,
   updateOrderItems: updateOrderItems2,
-  updateOrderStatus: updateOrderStatus2
+  updateOrderStatus: updateOrderStatus2,
+  getDashboardStats: getDashboardStats2
 };
 
 // src/modules/order/order.validation.ts
@@ -2427,6 +2544,7 @@ var optionalAuth_default = optionalAuth;
 // src/modules/order/order.route.ts
 var router7 = express7.Router();
 router7.post("/", orderLimiter, optionalAuth_default, validateRequest_default(OrderValidation.createOrderSchema), OrderController.createOrder);
+router7.get("/dashboard-stats", auth_default, admin_default, OrderController.getDashboardStats);
 router7.get("/my-orders", auth_default, OrderController.getMyOrders);
 router7.get("/number/:orderNumber", OrderController.getOrderNumber);
 router7.get("/:id", auth_default, OrderController.getOrderById);

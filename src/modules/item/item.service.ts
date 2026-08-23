@@ -61,6 +61,22 @@ const getItemById = async (id: string) => {
   return item;
 };
 
+const getItemBySlug = async (slug: string) => {
+  const item = await prisma.item.findUnique({
+    where: { slug },
+    include: {
+      category: { select: { id: true, name: true, slug: true } },
+      reviews: {
+        where: { isApproved: true },
+        include: { user: { select: { name: true } } },
+      },
+    },
+  });
+
+  if (!item) throw new AppError(404, 'Item not found');
+  return item;
+};
+
 const updateItem = async (id: string, payload: TUpdateItem) => {
   return await prisma.item.update({
     where: { id },
@@ -81,6 +97,7 @@ export const ItemService = {
   createItem,
   getAllItems,
   getItemById,
+  getItemBySlug,
   updateItem,
   deleteItem,
  

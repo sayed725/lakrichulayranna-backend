@@ -418,6 +418,111 @@ const updateOrderStatus = async (id: string, status: any) => {
   });
 };
 
+const getDashboardStats = async () => {
+  // Counts of everything
+  const totalOrders = await prisma.order.count({ where: { isDeleted: false } });
+  
+  const revenueAgg = await prisma.order.aggregate({
+    where: { status: 'DELIVERED', isDeleted: false },
+    _sum: { total: true },
+  });
+  const totalRevenue = revenueAgg._sum.total || 0;
+
+  const totalItems = await prisma.item.count({ where: { isDeleted: false } });
+  const pendingOrders = await prisma.order.count({ where: { status: 'PENDING', isDeleted: false } });
+  
+  const totalUsers = await prisma.user.count({ where: { isDeleted: false, role: 'CUSTOMER' } });
+  const totalCategories = await prisma.category.count({ where: { isActive: true } });
+  const totalReviews = await prisma.review.count({ where: { isDeleted: false } });
+  const totalCoupons = await prisma.coupon.count({ where: { isDeleted: false } });
+
+  // Weekly Sales Chart Data (last 7 days)
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  sevenDaysAgo.setHours(0, 0, 0, 0);
+
+  const recentOrdersForSales = await prisma.order.findMany({
+    where: {
+      createdAt: { gte: sevenDaysAgo },
+      status: 'DELIVERED',
+      isDeleted: false,
+    },
+    select: {
+      createdAt: true,
+      total: true,
+    },
+  });
+
+  // Aggregate in JS grouped by day name (Mon, Tue, etc.)
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const weeklySalesMap: Record<string, { sales: number; count: number }> = {};
+  
+  // Initialize last 7 days map
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const label = dayNames[d.getDay()]!;
+    weeklySalesMap[label] = { sales: 0, count: 0 };
+  }
+
+  // Populate data
+  recentOrdersForSales.forEach((order) => {
+    const dayLabel = dayNames[new Date(order.createdAt).getDay()]!;
+    if (weeklySalesMap[dayLabel]) {
+      weeklySalesMap[dayLabel].sales += order.total;
+      weeklySalesMap[dayLabel].count += 1;
+    }
+  });
+
+  const weeklySales = Object.entries(weeklySalesMap).map(([day, data]) => ({
+    day,
+    sales: data.sales,
+    count: data.count,
+  }));
+
+  // Top Selling Items (Most Sold)
+  const topSellingAgg = await prisma.orderItem.groupBy({
+    by: ['itemId', 'itemName'],
+    where: {
+      order: {
+        status: 'DELIVERED',
+        isDeleted: false,
+      },
+    },
+    _sum: {
+      quantity: true,
+      total: true,
+    },
+    orderBy: {
+      _sum: {
+        quantity: 'desc',
+      },
+    },
+    take: 5,
+  });
+
+  const mostSold = topSellingAgg.map((item) => ({
+    name: item.itemName,
+    quantity: item._sum.quantity || 0,
+    revenue: item._sum.total || 0,
+  }));
+
+  return {
+    counts: {
+      totalOrders,
+      totalRevenue,
+      totalItems,
+      pendingOrders,
+      totalUsers,
+      totalCategories,
+      totalReviews,
+      totalCoupons,
+    },
+    weeklySales,
+    mostSold,
+  };
+};
+
 export const OrderService = {
   createOrder,
   getMyOrders,
@@ -428,4 +533,5 @@ export const OrderService = {
   updateOrder,
   updateOrderItems,
   updateOrderStatus,
+  getDashboardStats,
 };

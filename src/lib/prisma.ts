@@ -6,6 +6,13 @@ import { env } from "./../config/env";
 const connectionString = `${env.DATABASE_URL}`;
 
 const adapter = new PrismaPg({ connectionString });
-const prisma = new PrismaClient({ adapter });
 
-export { prisma };
+declare global {
+  var prisma: PrismaClient | undefined;
+}
+
+export const prisma = globalThis.prisma || new PrismaClient({ adapter });
+
+if (process.env.NODE_ENV !== "production") {
+  globalThis.prisma = prisma;
+}

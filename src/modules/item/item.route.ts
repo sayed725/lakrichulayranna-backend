@@ -9,6 +9,7 @@ import { adminLimiter } from '../../middlewares/rateLimiter';
 const router = express.Router();
 
 router.get('/', ItemController.getAllItems);
+router.get('/slug/:slug', ItemController.getItemBySlug);
 router.get('/:id', ItemController.getItemById);
 router.post('/', auth, admin, adminLimiter, validateRequest(ItemValidation.createItemSchema), ItemController.createItem);
 router.patch('/:id', auth, admin, adminLimiter, validateRequest(ItemValidation.updateItemSchema), ItemController.updateItem);

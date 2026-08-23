@@ -50,6 +50,11 @@ const updateOrder = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, { statusCode: 200, success: true, message: 'Order updated successfully', data: result });
 });
 
+const getDashboardStats = catchAsync(async (req: Request, res: Response) => {
+  const result = await OrderService.getDashboardStats();
+  sendResponse(res, { statusCode: 200, success: true, message: 'Dashboard stats retrieved successfully', data: result });
+});
+
 export const OrderController = {
   createOrder,
   getMyOrders,
@@ -60,4 +65,5 @@ export const OrderController = {
   updateOrder,
   updateOrderItems,
   updateOrderStatus,
+  getDashboardStats,
 };

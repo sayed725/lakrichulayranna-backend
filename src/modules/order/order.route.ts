@@ -10,6 +10,7 @@ import { orderLimiter, adminLimiter } from '../../middlewares/rateLimiter';
 const router = express.Router();
 
 router.post('/', orderLimiter, optionalAuth, validateRequest(OrderValidation.createOrderSchema), OrderController.createOrder);
+router.get('/dashboard-stats', auth, admin, OrderController.getDashboardStats);
 router.get('/my-orders', auth, OrderController.getMyOrders);
 router.get('/number/:orderNumber', OrderController.getOrderNumber);
 router.get('/:id', auth, OrderController.getOrderById);

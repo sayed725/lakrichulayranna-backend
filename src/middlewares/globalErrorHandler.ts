@@ -21,8 +21,8 @@ const globalErrorHandler: ErrorRequestHandler = (err, req, res, next) => {
     const simplifiedError = handlePrismaError(err);
     statusCode = simplifiedError.statusCode;
     message = simplifiedError.message;
-  } else if (err instanceof AppError) {
-    statusCode = err.statusCode;
+  } else if (err instanceof AppError || (err && typeof err === 'object' && 'statusCode' in err)) {
+    statusCode = (err as any).statusCode;
     message = err.message;
   } else if (err instanceof Error) {
     message = err.message;

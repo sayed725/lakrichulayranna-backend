@@ -50,7 +50,7 @@ const changePassword = async (userId: string, payload: any) => {
   if (!user) throw new AppError(404, 'User not found');
 
   const isMatched = await comparePassword(payload.oldPassword, user.password);
-  if (!isMatched) throw new AppError(401, 'Incorrect old password');
+  if (!isMatched) throw new AppError(400, 'Incorrect old password');
 
   const hashedNewPassword = await hashPassword(payload.newPassword);
   await prisma.user.update({

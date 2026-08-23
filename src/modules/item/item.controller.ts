@@ -19,6 +19,11 @@ const getItemById = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, { statusCode: 200, success: true, message: 'Item retrieved', data: result });
 });
 
+const getItemBySlug = catchAsync(async (req: Request, res: Response) => {
+  const result = await ItemService.getItemBySlug(req.params.slug as string);
+  sendResponse(res, { statusCode: 200, success: true, message: 'Item retrieved', data: result });
+});
+
 const updateItem = catchAsync(async (req: Request, res: Response) => {
   const result = await ItemService.updateItem(req.params.id as string, req.body);
   sendResponse(res, { statusCode: 200, success: true, message: 'Item updated', data: result });
@@ -35,6 +40,7 @@ export const ItemController = {
   createItem,
   getAllItems,
   getItemById,
+  getItemBySlug,
   updateItem,
   deleteItem,
   
