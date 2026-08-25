@@ -4,12 +4,13 @@ import validateRequest from '../../middlewares/validateRequest';
 import { ReviewValidation } from './review.validation';
 import auth from '../../middlewares/auth';
 import admin from '../../middlewares/admin';
+import optionalAuth from '../../middlewares/optionalAuth';
 
 const router = express.Router();
 
 router.get('/item/:itemId', ReviewController.getItemReviews);
 router.get('/my-reviews', auth, ReviewController.getMyReviews);
-router.post('/', auth, validateRequest(ReviewValidation.createReviewSchema), ReviewController.createReview);
+router.post('/', optionalAuth, validateRequest(ReviewValidation.createReviewSchema), ReviewController.createReview);
 
 router.get('/', ReviewController.getAllReviews);
 router.patch('/:id/:status', auth, admin, ReviewController.updateReviewStatus);

@@ -1,13 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { env } from '../config/env';
+import catchAsync from '../utils/catchAsync';
 import { RoleType } from '../constants/roles';
 import { prisma } from '../server';
 
-const optionalAuth = async (req: Request, res: Response, next: NextFunction) => {
+const optionalAuth = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
 
-  // If no auth header, proceed without user (guest checkout)
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return next();
   }
@@ -23,20 +23,13 @@ const optionalAuth = async (req: Request, res: Response, next: NextFunction) => 
       select: { id: true, email: true, role: true, status: true, isDeleted: true },
     });
 
-    if (!user || user.isDeleted) {
-      return next(); // Proceed without user if token is invalid
+    if (user && !user.isDeleted && user.status !== 'BANNED') {
+      req.user = { ...decoded, status: user.status };
     }
-
-    if (user.status === 'BANNED') {
-      return next(); // Proceed without user if user is banned
-    }
-
-    req.user = { ...decoded, status: user.status };
-    next();
   } catch (err) {
-    // If token is invalid/expired, proceed without user (guest checkout)
-    next();
+    // If token is invalid or expired, ignore it and let it proceed as a guest
   }
-};
+  next();
+});
 
 export default optionalAuth;

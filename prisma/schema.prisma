@@ -170,18 +170,20 @@ model OrderItem {
 }
 
 model Review {
-  id         String   @id @default(uuid())
-  userId     String
-  itemId     String
-  rating     Int
-  comment    String?
-  isFeatured Boolean  @default(false)
-  isApproved Boolean  @default(false)
-  isDeleted  Boolean  @default(false)
-  deletedAt  DateTime?
-  createdAt  DateTime @default(now())
-  item       Item     @relation(fields: [itemId], references: [id])
-  user       User     @relation(fields: [userId], references: [id])
+  id            String    @id @default(uuid())
+  userId        String?
+  reviewerName  String?
+  reviewerEmail String?
+  itemId        String
+  rating        Int
+  comment       String?
+  isFeatured    Boolean   @default(false)
+  isApproved    Boolean   @default(false)
+  isDeleted     Boolean   @default(false)
+  deletedAt     DateTime?
+  createdAt     DateTime  @default(now())
+  item          Item      @relation(fields: [itemId], references: [id])
+  user          User?     @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([itemId])

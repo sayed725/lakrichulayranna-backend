@@ -6,35 +6,85 @@ import { QueryBuilder } from '../../utils/QueryBuilder';
 import { IQueryParams } from '../../interfaces/query.interface';
 import { reviewFilterableFields, reviewIncludeConfig, reviewSearchableFields } from './review.constant';
 
-const createReview = async (userId: string, payload: TCreateReview) => {
-  const orderItem = await prisma.orderItem.findFirst({
-    where: {
-      itemId: payload.itemId,
-      order: {
-        userId,
-        status: 'DELIVERED', 
+const createReview = async (userId: string | undefined, payload: TCreateReview) => {
+  if (userId) {
+    const orderItem = await prisma.orderItem.findFirst({
+      where: {
+        itemId: payload.itemId,
+        order: {
+          userId,
+          status: 'DELIVERED', 
+        },
       },
-    },
-  });
+    });
 
-  if (!orderItem) {
-    throw new AppError(403, 'You can only review items you have ordered and received');
+    if (!orderItem) {
+      throw new AppError(403, 'You can only review items you have ordered and received');
+    }
+
+    const existingReview = await prisma.review.findFirst({
+      where: { userId, itemId: payload.itemId },
+    });
+
+    if (existingReview) {
+      throw new AppError(409, 'You have already reviewed this item');
+    }
+
+    return await prisma.review.create({
+      data: {
+        userId,
+        itemId: payload.itemId,
+        rating: payload.rating,
+        comment: payload.comment ?? null,
+      },
+    });
+  } else {
+    if (!payload.reviewerName || !payload.reviewerEmail) {
+      throw new AppError(400, 'Name and email are required for guest reviews');
+    }
+
+    const orderItem = await prisma.orderItem.findFirst({
+      where: {
+        itemId: payload.itemId,
+        order: {
+          customerEmail: {
+            equals: payload.reviewerEmail,
+            mode: 'insensitive',
+          },
+          status: 'DELIVERED',
+        },
+      },
+    });
+
+    if (!orderItem) {
+      throw new AppError(403, 'You can only review items you have ordered and received');
+    }
+
+    const existingReview = await prisma.review.findFirst({
+      where: {
+        reviewerEmail: {
+          equals: payload.reviewerEmail,
+          mode: 'insensitive',
+        },
+        itemId: payload.itemId,
+        userId: null,
+      },
+    });
+
+    if (existingReview) {
+      throw new AppError(409, 'You have already reviewed this item');
+    }
+
+    return await prisma.review.create({
+      data: {
+        reviewerName: payload.reviewerName,
+        reviewerEmail: payload.reviewerEmail,
+        itemId: payload.itemId,
+        rating: payload.rating,
+        comment: payload.comment ?? null,
+      },
+    });
   }
-
-  const existingReview = await prisma.review.findFirst({
-    where: { userId, itemId: payload.itemId },
-  });
-
-  if (existingReview) {
-    throw new AppError(409, 'You have already reviewed this item');
-  }
-
-  return await prisma.review.create({
-    data: {
-      userId,
-      ...payload,
-    },
-  });
 };
 
 const getItemReviews = async (itemId: string, queries: IQueryParams) => {

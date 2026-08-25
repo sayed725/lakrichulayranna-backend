@@ -5,7 +5,7 @@ import { ReviewService } from './review.service';
 import { IQueryParams } from '../../interfaces/query.interface';
 
 const createReview = catchAsync(async (req: Request, res: Response) => {
-  const result = await ReviewService.createReview(req.user.userId, req.body);
+  const result = await ReviewService.createReview(req.user?.userId, req.body);
   sendResponse(res, { statusCode: 201, success: true, message: 'Review created and pending approval', data: result });
 });
 
