@@ -9,6 +9,6 @@ export const reviewIncludeConfig: Prisma.ReviewInclude = {
     select: { name: true },
   },
   item: {
-    select: { name: true, slug: true },
+    select: { name: true, slug: true, imageUrl: true },
   },
 };
