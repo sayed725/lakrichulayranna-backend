@@ -21,7 +21,7 @@ var envSchema = z.object({
   DATABASE_URL: z.string().startsWith("postgresql://", "Must be a valid PostgreSQL connection string"),
   JWT_SECRET: z.string().min(10),
   JWT_EXPIRES_IN: z.string().default("7d"),
-  CLIENT_URL: z.string().url().default("http://localhost:3000")
+  CLIENT_URL: z.string().url()
 });
 var _env = envSchema.safeParse(process.env);
 if (!_env.success) {
