@@ -6,7 +6,11 @@ export const orderSearchableFields = ['orderNumber', 'couponCode', 'user.name', 
 export const orderFilterableFields = ['status', 'paymentMethod', 'paymentStatus', 'subtotal', 'total', 'discountAmount', 'deliveryCharge', 'isInsideDhaka', 'isDeleted', 'userId'];
 
 export const orderIncludeConfig: Prisma.OrderInclude = {
-  items: true,
+  items: {
+    include: {
+      item: true,
+    },
+  },
   user: {
     select: { name: true, phone: true, email: true },
   },

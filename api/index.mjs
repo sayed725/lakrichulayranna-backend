@@ -1967,7 +1967,11 @@ function generateOrderNumber() {
 var orderSearchableFields = ["orderNumber", "couponCode", "user.name", "user.email", "user.phone", "customerPhone", "customerName", "customerEmail"];
 var orderFilterableFields = ["status", "paymentMethod", "paymentStatus", "subtotal", "total", "discountAmount", "deliveryCharge", "isInsideDhaka", "isDeleted", "userId"];
 var orderIncludeConfig = {
-  items: true,
+  items: {
+    include: {
+      item: true
+    }
+  },
   user: {
     select: { name: true, phone: true, email: true }
   }
