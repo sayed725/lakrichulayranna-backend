@@ -2256,6 +2256,9 @@ var updateOrder = async (id, payload) => {
   }
   if (payload.status !== void 0) {
     updateData.status = payload.status;
+    if (payload.status === "DELIVERED") {
+      updateData.paymentStatus = "PAID";
+    }
   }
   if (payload.paymentStatus !== void 0) {
     updateData.paymentStatus = payload.paymentStatus;
@@ -2280,9 +2283,13 @@ var updateOrderStatus = async (id, status) => {
   if (order.status === "DELIVERED") {
     throw new AppError_default(400, "Cannot update delivered order");
   }
+  const updateData = { status };
+  if (status === "DELIVERED") {
+    updateData.paymentStatus = "PAID";
+  }
   return await prisma.order.update({
     where: { id },
-    data: { status }
+    data: updateData
   });
 };
 var getDashboardStats = async () => {
@@ -2560,14 +2567,14 @@ var OrderRoutes = router7;
 import express8 from "express";
 
 // src/modules/review/review.constant.ts
-var reviewSearchableFields = ["comment", "user.name"];
+var reviewSearchableFields = ["comment", "user.name", "user.email", "reviewerName", "reviewerEmail"];
 var reviewFilterableFields = ["rating", "isApproved", "isFeatured", "isDeleted", "itemId", "userId"];
 var reviewIncludeConfig = {
   user: {
-    select: { name: true }
+    select: { id: true, name: true, email: true, phone: true }
   },
   item: {
-    select: { name: true, slug: true, imageUrl: true }
+    select: { id: true, name: true, slug: true, imageUrl: true }
   }
 };
 

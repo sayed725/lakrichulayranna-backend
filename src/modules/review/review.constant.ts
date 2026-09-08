@@ -1,14 +1,14 @@
 import { Prisma } from "../../generated/client";
 
-export const reviewSearchableFields = ['comment', 'user.name'];
+export const reviewSearchableFields = ['comment', 'user.name', 'user.email', 'reviewerName', 'reviewerEmail'];
 
 export const reviewFilterableFields = ['rating', 'isApproved', 'isFeatured', 'isDeleted', 'itemId', 'userId'];
 
 export const reviewIncludeConfig: Prisma.ReviewInclude = {
   user: {
-    select: { name: true },
+    select: { id: true, name: true, email: true, phone: true },
   },
   item: {
-    select: { name: true, slug: true, imageUrl: true },
+    select: { id: true, name: true, slug: true, imageUrl: true },
   },
 };

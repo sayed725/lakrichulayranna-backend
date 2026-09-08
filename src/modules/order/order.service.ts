@@ -382,6 +382,9 @@ const updateOrder = async (id: string, payload: TUpdateOrder) => {
   }
   if (payload.status !== undefined) {
     updateData.status = payload.status;
+    if (payload.status === 'DELIVERED') {
+      updateData.paymentStatus = 'PAID';
+    }
   }
   if (payload.paymentStatus !== undefined) {
     updateData.paymentStatus = payload.paymentStatus;
@@ -412,9 +415,14 @@ const updateOrderStatus = async (id: string, status: any) => {
     throw new AppError(400, 'Cannot update delivered order');
   }
 
+  const updateData: Record<string, any> = { status };
+  if (status === 'DELIVERED') {
+    updateData.paymentStatus = 'PAID';
+  }
+
   return await prisma.order.update({
     where: { id },
-    data: { status },
+    data: updateData,
   });
 };
 
