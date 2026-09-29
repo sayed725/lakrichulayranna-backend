@@ -12,6 +12,7 @@ node_modules/
 dist/
 build/
 generated/
+api/
 prisma/seed.ts
 
 # Environment variables

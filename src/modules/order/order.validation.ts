@@ -9,12 +9,10 @@ const createOrderSchema = z.object({
     })).min(1, 'Order must contain at least one item'),
     couponCode: z.string().optional(),
     paymentMethod: z.enum([PaymentMethod.COD, PaymentMethod.ONLINE]),
-    deliveryAddress: z.object({
-      area: z.string().min(1, 'Area is required'),
-      city: z.string().min(1, 'City is required'),
-      street: z.string().min(1, 'Street is required'),
-      country: z.string().min(1, 'Country is required'),
-    }),
+   deliveryAddress: z.object({
+    area: z.string().min(1, 'Area is required'),
+    address: z.string().min(5, 'Address must be at least 5 characters'),
+  }),
     isInsideDhaka: z.boolean().optional(),
     customerName: z.string().optional(),
     customerPhone: z.string().optional(),
@@ -51,12 +49,10 @@ const updateOrderSchema = z.object({
     customerName: z.string().optional(),
     customerPhone: z.string().optional(),
     customerEmail: z.string().email().optional(),
-    deliveryAddress: z.object({
-      area: z.string().min(1, 'Area is required'),
-      city: z.string().min(1, 'City is required'),
-      street: z.string().min(1, 'Street is required'),
-      country: z.string().min(1, 'Country is required'),
-    }).optional(),
+     deliveryAddress: z.object({
+    area: z.string().min(1, 'Area is required'),
+    address: z.string().min(5, 'Address must be at least 5 characters'),
+  }).optional(),
     isInsideDhaka: z.boolean().optional(),
     deliveryCharge: z.number().nonnegative().optional(),
     notes: z.string().optional(),
