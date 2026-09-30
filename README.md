@@ -9,7 +9,7 @@
 [![Zod](https://img.shields.io/badge/Zod-v4-3E67B1?logo=zod)](https://zod.dev/)
 [![Puppeteer](https://img.shields.io/badge/Puppeteer-PDF--Generation-40B5A4?logo=puppeteer)](https://pptr.dev/)
 
-The backend engine of **Lakri Chulay Ranna (খড়ির চুলায় রান্না)** — a traditional Bengali food ordering and restaurant management platform. This server powers user authentication, menu catalog management, real-time discount coupons, dynamic hero slider banners, PDF invoice generation, contact messaging, site configurations, and order lifecycle processing.
+The backend engine of **Lakri Chulay Ranna (লাকড়ি চুলায় রান্না)** — a traditional Bengali food ordering and restaurant management platform. This server powers user authentication, menu catalog management, real-time discount coupons, dynamic hero slider banners, PDF invoice generation, contact messaging, site configurations, and order lifecycle processing.
 
 ---
 
